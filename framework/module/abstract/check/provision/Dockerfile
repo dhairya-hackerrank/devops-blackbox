@@ -93,7 +93,7 @@ ONBUILD RUN printenv \
               -O \
                 /tmp/blackbox \
               --no-cache \
-              "https://github.com/ProblemSetters/devops-blackbox/archive/${BLACKBOX_VERSION}.zip" \
+              "https://github.com/dhairya-hackerrank/devops-blackbox/archive/${BLACKBOX_VERSION}.zip" \
                 \
                 2>&1; \
             unzip \
