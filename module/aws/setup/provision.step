@@ -11,6 +11,8 @@ blackbox.module.aws.setup.provision() {
 
   blackbox.framework.inventory.provision awscli && {
     tee -a /etc/hosts < <(printf "127.0.0.1\teu-central-1.hackerrankaws.local\n")
-    tee -a /etc/environment < <(printf "AWS_ENDPOINT_URL=%s\n" "eu-central-1.hackerrankaws.local")
+    # Full URL: the AWS CLI reads AWS_ENDPOINT_URL natively, so a bare hostname
+    # only works while the shim is in front of it.
+    tee -a /etc/environment < <(printf "AWS_ENDPOINT_URL=%s\n" "http://eu-central-1.hackerrankaws.local:4566")
   }
 }
