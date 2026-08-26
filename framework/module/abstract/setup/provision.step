@@ -38,10 +38,14 @@ blackbox.framework.module.abstract.setup.provision() {
 
   blackbox.framework.inventory.provision docker-ce && {
     usermod -a -G docker "$BLACKBOX_USER_NAME"
-    service docker start && {
-      blackbox.framework.inventory.ecr.login
-    }
+    service docker start
   }
+
+  # Unconditional: the inventory returns non-zero when docker-ce is already installed, which every
+  # devops image bakes, so gating the login on it left those images with only the expired bake-time
+  # `docker login` and failed every private-registry pull with "Your authorization token has
+  # expired". Matches 2404 and master.
+  blackbox.framework.inventory.ecr.login
 
   blackbox.framework.inventory.install.file /usr/local/bin/solve 0 0 0755 </blackbox/framework/module/abstract/setup/provision/rootfs/usr/local/bin/solve
 
