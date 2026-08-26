@@ -296,6 +296,16 @@ blackbox.framework.inventory() {
       typeset -i attempt
       typeset token
 
+      {
+        # Discard whatever credential is already stored for this registry, for
+        # both users. The machine image bakes a `docker login` at build time and
+        # its ECR token is hours or days stale, so leaving it in place lets a
+        # failed handoff read as "Your authorization token has expired" on the
+        # pull instead of the real cause. vm-agent's files are the only source.
+        docker logout "$registry" &>/dev/null
+        sudo -u "$BLACKBOX_USER_NAME" docker logout "$registry" &>/dev/null
+      }
+
       for (( attempt=1; attempt<=attempts; attempt++ )); do
         token=$(blackbox.framework.inventory.ecr.token.read "$name") || return 1
 
@@ -327,11 +337,24 @@ blackbox.framework.inventory() {
       }
 
       (
-        blackbox.framework.inventory.ecr.token.login 134148934511.dkr.ecr.us-east-1.amazonaws.com private-password
+        typeset -ri outer_attempts=3
+        typeset -i outer_attempt
+
+        for (( outer_attempt=1; outer_attempt<=outer_attempts; outer_attempt++ )); do
+          blackbox.framework.inventory.ecr.token.login 134148934511.dkr.ecr.us-east-1.amazonaws.com private-password && break
+
+          printf "warn: *** private ECR login retry %s/%s (tokens may not have been published yet)\n" "$outer_attempt" "$outer_attempts" >&2
+          sleep 10
+        done
 
         {
           # TODO: for backwards compatibility with public ECR repositories, and should be removed when all questions are moved to private ECR repositories
-          blackbox.framework.inventory.ecr.token.login public.ecr.aws/b0k9n8x8 public-password
+          for (( outer_attempt=1; outer_attempt<=outer_attempts; outer_attempt++ )); do
+            blackbox.framework.inventory.ecr.token.login public.ecr.aws/b0k9n8x8 public-password && break
+
+            printf "warn: *** public ECR login retry %s/%s (tokens may not have been published yet)\n" "$outer_attempt" "$outer_attempts" >&2
+            sleep 10
+          done
         }
       ) 2>&1 # ¯\_(ツ)_/¯
     }
