@@ -187,6 +187,41 @@ blackbox.framework.inventory() {
       return 1
     }
 
+    # Logs in to Amazon ECR
+    #
+    # @noargs
+    #
+    # @example
+    #  # Logs in to Amazon ECR
+    #  blackbox.framework.inventory.ecr.login
+    #
+    # @see blackbox.framework.inventory.ecr.logout
+    function blackbox.framework.inventory.ecr.login() {
+      {
+        blackbox.framework.trace "${FUNCNAME[0]}" "$*" <<<""
+      }
+
+      blackbox.framework.inventory.ecr.token.login public.ecr.aws/b0k9n8x8 public-password 2>&1
+    }
+
+    # Logs out of Amazon ECR
+    #
+    # @noargs
+    #
+    # @example
+    #  # Logs out of Amazon ECR
+    #  blackbox.framework.inventory.ecr.logout
+    #
+    # @see blackbox.framework.inventory.ecr.login
+    function blackbox.framework.inventory.ecr.logout() {
+      {
+        blackbox.framework.trace "${FUNCNAME[0]}" "$*" <<<""
+      }
+
+      docker logout
+    }
+  }; blackbox.framework.inventory.ecr
+
   # @section blackbox.framework.inventory.*
 
   # Provisions an inventory
